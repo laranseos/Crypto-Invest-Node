@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/userModel.js';
 import generateToken from '../utils/generateToken.js';
+import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer'
 // @desc    Auth user & get token
 // @route   POST /api/users/auth
@@ -11,12 +12,15 @@ const authUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
-    generateToken(res, user._id);
-
+    const token = generateToken(res, user._id, user.role);
     res.json({
       _id: user._id,
+      username : user.username,
       email: user.email,
+      mylink : user.mylink,
+      balance : user.balance,
       role: user.role,
+      avatar: user.avatar
     });
   } else {
     res.status(401);
@@ -24,11 +28,44 @@ const authUser = asyncHandler(async (req, res) => {
   }
 });
 
+const checkAuth = asyncHandler(async (req, res) => {
+  let token;
+
+  token = req.cookies.jwt;
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      const userInfo = await User.findById(decoded.userId).select('-password');
+      // console.log(userInfo);
+      if(userInfo) {
+      res.json({
+        _id: userInfo._id,
+        username : userInfo.username,
+        email: userInfo.email,
+        mylink : userInfo.mylink,
+        balance : userInfo.balance,
+        role: userInfo.role,
+        avatar: userInfo.avatar
+      });
+    }
+
+    } catch (error) {
+      console.error(error);
+      res.status(401);
+      throw new Error('Not authorized, token failed');
+    }
+  } else {
+    res.status(401);
+    throw new Error('Not authorized, no token');
+  }
+});
 // @desc    Register a new user
 // @route   POST /api/users
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { email, code, password, referal_link } = req.body;
+  const { username, email, code, password, referral_link, mylink } = req.body;
 
   const userExists = await User.findOne({ email });
 
@@ -44,19 +81,23 @@ const registerUser = asyncHandler(async (req, res) => {
         if((Date.now()-process.env.GENERATED_TIME)<process.env.VALID_DURATION){
             
           const user = await User.create({
+            username,
             email,
             password,
-            referal_link
+            mylink,
+            referral_link,
           });
 
           if (user) {
-            generateToken(res, user._id);
+            generateToken(res, user._id, user.role);
 
             res.status(201).json({
               _id: user._id,
               email: user.email,
               role: user.role,
             });
+            res.status(201).json({ message: "Successfully Created."});
+
           } else {
             res.status(400);
             throw new Error('Invalid user data');
@@ -153,19 +194,28 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
   if (user) {
-    user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
+    user.username = req.body.username || user.username;
+    user.avatar = req.body.avatar || user.avatar;
 
     if (req.body.password) {
-      user.password = req.body.password;
+      if(await user.matchPassword(req.body.password)) {
+        user.password = req.body.newPassword;
+      } else  {
+        res.status(404);
+        throw new Error('Password is incorrect.');
+      }
     }
 
     const updatedUser = await user.save();
 
     res.json({
       _id: updatedUser._id,
-      name: updatedUser.name,
+      username : updatedUser.username,
       email: updatedUser.email,
+      mylink : updatedUser.mylink,
+      balance : updatedUser.balance,
+      role: updatedUser.role,
+      avatar: updatedUser.avatar
     });
   } else {
     res.status(404);
@@ -173,6 +223,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   }
 });
 export {
+  checkAuth,
   authUser,
   registerUser,
   logoutUser,

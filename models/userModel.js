@@ -3,6 +3,11 @@ import bcrypt from 'bcryptjs';
 
 const userSchema = mongoose.Schema(
   {
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     email: {
       type: String,
       required: true,
@@ -10,20 +15,35 @@ const userSchema = mongoose.Schema(
     },
     password: {
       type: String,
-
+      required: true,
     },
-    referal_link: {
+    mylink: {
       type: String,
-
+      required: true,
+    },
+    referral_link: {
+      type: String,
+      default: "",
+    },
+    balance : {
+      type: Number,
+      default: 0,
     },
     role: {
       type: String,
       required: true,
       default:"customer"
     },
+    referral_activate : {
+      type: Boolean,
+      default: false,
+    },
+    avatar: {
+      type: String,
+      default:"",
+    },
     // googleId: {
     //   type:String,
-    
     // },
   },
   {
