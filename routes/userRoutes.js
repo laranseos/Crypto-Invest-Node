@@ -3,7 +3,7 @@ import {
   authUser,
   registerUser,
   logoutUser,
-  getUserProfile,
+  // getUserProfile,
   mailHandler,
   updateUserProfile,
   checkAuth,
@@ -17,6 +17,7 @@ router.post('/register', registerUser);
 router.post('/mail', mailHandler);
 router.post('/auth', authUser);
 router.post('/logout', logoutUser);
+// router.put('/profile', protect ,updateUserProfile);
 router
   .route('/profile')
   .put(protect, updateUserProfile);

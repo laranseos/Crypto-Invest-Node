@@ -6,12 +6,12 @@ const userSchema = mongoose.Schema(
     username: {
       type: String,
       required: true,
-      unique: true,
+      unique : true,
     },
     email: {
       type: String,
       required: true,
-      unique: true,
+      unique : true,
     },
     password: {
       type: String,
@@ -34,14 +34,19 @@ const userSchema = mongoose.Schema(
       required: true,
       default:"customer"
     },
-    referral_activate : {
-      type: Boolean,
-      default: false,
-    },
     avatar: {
       type: String,
       default:"",
     },
+    cycle: {
+      type: Number,
+      default: 1,
+    },
+    state: {
+      type: Number,
+      default: 1,
+    }
+
     // googleId: {
     //   type:String,
     // },

@@ -6,6 +6,8 @@ import nodemailer from 'nodemailer'
 // @desc    Auth user & get token
 // @route   POST /api/users/auth
 // @access  Public
+
+
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -20,7 +22,9 @@ const authUser = asyncHandler(async (req, res) => {
       mylink : user.mylink,
       balance : user.balance,
       role: user.role,
-      avatar: user.avatar
+      avatar: user.avatar,
+      cycle : user.cycle,
+      state : user.state
     });
   } else {
     res.status(401);
@@ -47,7 +51,9 @@ const checkAuth = asyncHandler(async (req, res) => {
         mylink : userInfo.mylink,
         balance : userInfo.balance,
         role: userInfo.role,
-        avatar: userInfo.avatar
+        avatar: userInfo.avatar,
+        cycle : userInfo.cycle,
+        state : userInfo.state
       });
     }
 
@@ -215,7 +221,9 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       mylink : updatedUser.mylink,
       balance : updatedUser.balance,
       role: updatedUser.role,
-      avatar: updatedUser.avatar
+      avatar: updatedUser.avatar,
+      cycle : updatedUser.cycle,
+      state : updatedUser.state
     });
   } else {
     res.status(404);
