@@ -3,6 +3,7 @@ import User from '../models/userModel.js';
 import generateToken from '../utils/generateToken.js';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer'
+import emailTemplate from '../utils/emailTemplate.js';
 // @desc    Auth user & get token
 // @route   POST /api/users/auth
 // @access  Public
@@ -214,29 +215,27 @@ const remailHandler = async (req, res) =>{
   //     //tls: {rejectUnauthorized: false},
   //     service:'gmail'
   //  })
-
+   const username = userExists.username;
    process.env.FORGOT_CODE=Math.floor(100000+Math.random()*900000);
    process.env.GENERATED_TIME=Date.now();
    res.status(200).json({message:'sent'});
    console.log(process.env.FORGOT_CODE);
     
-  //  const mailOptions={
-  //     from:'klaus237192@gmail.com',
-  //     to:email,
-  //     subject:`Your verification code is ${process.env.FORGOT_CODE}`,
-  //     text:"code",
-  //     html:`<h1>Verify your email address</h1>
-  //           <hr><h3><p>Please enter this 6-digit code to access our platform.</p></h3>
-  //           <h2>${process.env.FORGOT_CODE}</h2><h3><p>This code is valid for 2 minutes.</p></h3>`
-  //  }
-  //  await transporter.sendMail(mailOptions,(err,info)=>{
-  //     if(err){
-  //        console.log(err)
-  //        res.status(500).json({success:false,message:"Internal Server Error"})
-  //     }else{
-  //        res.status(200).json({success:true,message:"Email sent successfully"})
-  //     }
-  //  });
+   const mailOptions={
+      from:'klaus237192@gmail.com',
+      to:email,
+      subject:`Your verification code is ${process.env.FORGOT_CODE}`,
+      text:"code",
+      html: emailTemplate(username),
+   }
+   await transporter.sendMail(mailOptions,(err,info)=>{
+      if(err){
+         console.log(err)
+         res.status(500).json({success:false,message:"Internal Server Error"})
+      }else{
+         res.status(200).json({success:true,message:"Email sent successfully"})
+      }
+   });
 
   } else {
     res.status(400).json({message:"User doesn't exist."});
