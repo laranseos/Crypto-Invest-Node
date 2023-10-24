@@ -42,7 +42,7 @@ const checkAuth = asyncHandler(async (req, res) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       const userInfo = await User.findById(decoded.userId).select('-password');
-      // console.log(userInfo);
+
       if(userInfo) {
       res.json({
         _id: userInfo._id,
@@ -119,6 +119,40 @@ const registerUser = asyncHandler(async (req, res) => {
 
 });
 
+const changePassword = asyncHandler(async (req, res) => {
+  const { forgot_email,forgot_code,forgot_password } = req.body;
+  const email = forgot_email;
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    res.status(400);
+    throw new Error('User does not exist');
+    return;
+  } 
+
+  if(forgot_code==process.env.FORGOT_CODE) {
+        if((Date.now()-process.env.GENERATED_TIME)<process.env.VALID_DURATION){
+            
+          user.password = forgot_password
+          const updatedUser = user.save();
+
+          if (updatedUser) {
+            res.status(201).json({ message: "Password Changed Successfully!"});
+          } else {
+            res.status(400);
+            throw new Error('Invalid user data');
+          }
+        } else{
+          res.status(400);
+          throw new Error('Reset code is expired.');
+        }
+  } else{
+        res.status(400);
+        throw new Error('Verification code is incorrect.');
+  }
+
+});
+
 const mailHandler = async (req, res) =>{
     const { email } = req.body;
     const userExists = await User.findOne({ email });
@@ -161,6 +195,51 @@ const mailHandler = async (req, res) =>{
     //     }
     //  });
 
+  }
+};
+const remailHandler = async (req, res) =>{
+  const { forgot_email } = req.body;
+  const email = forgot_email;
+  const userExists = await User.findOne({ email });
+  console.log(forgot_email);
+  if (userExists) {
+      //   const transporter=nodemailer.createTransport({
+  //     //host: 'smtp.gmail.com',
+  //     port: 587,
+  //     secure: false, // true for 465, false for other ports
+  //     auth: {
+  //        user: 'klaus237192@gmail.com', // your email address
+  //        pass: 'ucybtcwnpnlqvidw' // your email password
+  //     },
+  //     //tls: {rejectUnauthorized: false},
+  //     service:'gmail'
+  //  })
+
+   process.env.FORGOT_CODE=Math.floor(100000+Math.random()*900000);
+   process.env.GENERATED_TIME=Date.now();
+   res.status(200).json({message:'sent'});
+   console.log(process.env.FORGOT_CODE);
+    
+  //  const mailOptions={
+  //     from:'klaus237192@gmail.com',
+  //     to:email,
+  //     subject:`Your verification code is ${process.env.FORGOT_CODE}`,
+  //     text:"code",
+  //     html:`<h1>Verify your email address</h1>
+  //           <hr><h3><p>Please enter this 6-digit code to access our platform.</p></h3>
+  //           <h2>${process.env.FORGOT_CODE}</h2><h3><p>This code is valid for 2 minutes.</p></h3>`
+  //  }
+  //  await transporter.sendMail(mailOptions,(err,info)=>{
+  //     if(err){
+  //        console.log(err)
+  //        res.status(500).json({success:false,message:"Internal Server Error"})
+  //     }else{
+  //        res.status(200).json({success:true,message:"Email sent successfully"})
+  //     }
+  //  });
+
+  } else {
+    res.status(400).json({message:"User doesn't exist."});
   }
 };
 
@@ -230,12 +309,42 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     throw new Error('User not found');
   }
 });
+
+const upState = asyncHandler(async (req, res) => {
+
+  const {email} = req.body;
+  const user = await User.findOne({email});
+
+  if (user) {
+    user.state = 3;
+
+    const updatedUser = await user.save();
+
+    res.json({
+      _id: updatedUser._id,
+      username : updatedUser.username,
+      email: updatedUser.email,
+      mylink : updatedUser.mylink,
+      balance : updatedUser.balance,
+      role: updatedUser.role,
+      avatar: updatedUser.avatar,
+      cycle : updatedUser.cycle,
+      state : updatedUser.state
+    });
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
 export {
   checkAuth,
   authUser,
   registerUser,
+  changePassword,
   logoutUser,
   mailHandler,
+  remailHandler,
   getUserProfile,
   updateUserProfile,
+  upState,
 };

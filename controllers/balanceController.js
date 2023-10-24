@@ -112,7 +112,7 @@ const getRewards = asyncHandler(async (req, res) =>{
   if (user) {
     if(user.cycle==1) user.balance = user.balance + 250;
     if(user.cycle==2) user.balance = user.balance + 275;
-
+    
     user.state=1;
     user.cycle++;
 
