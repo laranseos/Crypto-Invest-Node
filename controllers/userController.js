@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer'
 import emailTemplate from '../utils/emailTemplate.js';
 import forgotTemplate from '../utils/forgotTemplate.js';
+
 // @desc    Auth user & get token
 // @route   POST /api/users/auth
 // @access  Public
@@ -196,6 +197,7 @@ const remailHandler = async (req, res) =>{
   const userExists = await User.findOne({ email });
   console.log(forgot_email);
   if (userExists) {
+
     const transporter=nodemailer.createTransport({
       //host: 'smtp.gmail.com',
       port: 587,
@@ -214,11 +216,13 @@ const remailHandler = async (req, res) =>{
    console.log(process.env.FORGOT_CODE);
     
    const mailOptions={
+
       from:'profitteamcad@gmail.com',
       to:email,
       subject:`Your verification code is ${process.env.FORGOT_CODE}`,
       text:"code",
       html:forgotTemplate(email),
+
    }
    await transporter.sendMail(mailOptions,(err,info)=>{
       if(err){

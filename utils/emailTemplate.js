@@ -1,5 +1,7 @@
+
 const emailTemplate = (email) => {
     return `
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -58,6 +60,8 @@ const emailTemplate = (email) => {
 </body>
 </html>
 
+
 `};
 
 export default emailTemplate;
+
