@@ -1,7 +1,5 @@
-
-const emailTemplate = (email) => {
+const forgotTemplate = (email) => {
     return `
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -51,17 +49,15 @@ const emailTemplate = (email) => {
 </head>
 <body>
     <div class="container">
-        <h1>Hi, ${email}</h1>
-        <h5>Thank you for signing up! Please use the verification code below to verify your email. This code will be valid only for 2 minutes.</h5>
-        <p class="verification-code">${process.env.VERIFICATION_CODE}</p>
-        <h5>If you have any questions, simply reply to this email. I’m here to help.</h5>
-        <h4>Regards,<br>Profit Team</h4> 
+        <h1>Hi ${email},</h1>
+        <p> Please use the verification code below to reset your password. This code will be valid only for 2 minutes.</p>
+        <p class="verification-code">${process.env.FORGOT_CODE}</p>
+        <p>If you have any questions, simply reply to this email. I’m here to help.</p>
+        <p>Regards,<br>Profit Team</p> 
     </div>
 </body>
 </html>
 
-
 `};
 
-export default emailTemplate;
-
+export default forgotTemplate;
