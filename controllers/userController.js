@@ -3,6 +3,8 @@ import User from '../models/userModel.js';
 import generateToken from '../utils/generateToken.js';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer'
+import emailTemplate from '../utils/emailTemplate.js';
+import forgotTemplate from '../utils/forgotTemplate.js';
 // @desc    Auth user & get token
 // @route   POST /api/users/auth
 // @access  Public
@@ -72,51 +74,42 @@ const checkAuth = asyncHandler(async (req, res) => {
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
   const { username, email, code, password, referral_link, mylink } = req.body;
-
   const userExists = await User.findOne({ email });
-
   if (userExists) {
     res.status(400);
     throw new Error('User already exists');
-    return;
-  } 
-
-
-  console.log(process.env.VERIFICATION_CODE);
-  if(code==process.env.VERIFICATION_CODE) {
-        if((Date.now()-process.env.GENERATED_TIME)<process.env.VALID_DURATION){
-            
-          const user = await User.create({
-            username,
-            email,
-            password,
-            mylink,
-            referral_link,
-          });
-
-          if (user) {
-            generateToken(res, user._id, user.role);
-
-            res.status(201).json({
-              _id: user._id,
-              email: user.email,
-              role: user.role,
-            });
-            res.status(201).json({ message: "Successfully Created."});
-
-          } else {
-            res.status(400);
-            throw new Error('Invalid user data');
-          }
-        } else{
-          res.status(400);
-          throw new Error('Verification code is expired.');
-        }
-  } else{
-        res.status(400);
-        throw new Error('Verification code is incorrect.');
   }
 
+  console.log(process.env.VERIFICATION_CODE);
+  if (code == process.env.VERIFICATION_CODE) {
+    if (Date.now() - process.env.GENERATED_TIME < process.env.VALID_DURATION) {
+      const user = await User.create({
+        username,
+        email,
+        password,
+        mylink,
+        referral_link,
+      });
+      if (user) {
+        generateToken(res, user._id, user.role);
+        res.status(201).json({
+          _id: user._id,
+          email: user.email,
+          role: user.role,
+          message: "Successfully Created.",
+        });
+      } else {
+        res.status(400);
+        throw new Error('Invalid user data');
+      }
+    } else {
+      res.status(400);
+      throw new Error('Verification code is expired.');
+    }
+  } else {
+    res.status(400);
+    throw new Error('Verification code is incorrect.');
+  }
 });
 
 const changePassword = asyncHandler(async (req, res) => {
@@ -156,44 +149,44 @@ const changePassword = asyncHandler(async (req, res) => {
 const mailHandler = async (req, res) =>{
     const { email } = req.body;
     const userExists = await User.findOne({ email });
+    
 
     if (userExists) {
       res.status(400).json({message:"User already exists."})
     } else {
-    //   const transporter=nodemailer.createTransport({
-    //     //host: 'smtp.gmail.com',
-    //     port: 587,
-    //     secure: false, // true for 465, false for other ports
-    //     auth: {
-    //        user: 'klaus237192@gmail.com', // your email address
-    //        pass: 'ucybtcwnpnlqvidw' // your email password
-    //     },
-    //     //tls: {rejectUnauthorized: false},
-    //     service:'gmail'
-    //  })
+      
+      const transporter=nodemailer.createTransport({
+        //host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+           user: 'profitteamcad@gmail.com', // your email address
+           pass: 'vojhaizydjtqdahe' // your email password
+        },
+        //tls: {rejectUnauthorized: false},
+        service:'gmail'
+     })
 
      process.env.VERIFICATION_CODE=Math.floor(100000+Math.random()*900000);
      process.env.GENERATED_TIME=Date.now();
      res.status(200).json({message:'sent'});
      console.log(process.env.VERIFICATION_CODE);
       
-    //  const mailOptions={
-    //     from:'klaus237192@gmail.com',
-    //     to:email,
-    //     subject:`Your verification code is ${process.env.VERIFICATION_CODE}`,
-    //     text:"code",
-    //     html:`<h1>Verify your email address</h1>
-    //           <hr><h3><p>Please enter this 6-digit code to access our platform.</p></h3>
-    //           <h2>${process.env.VERIFICATION_CODE}</h2><h3><p>This code is valid for 2 minutes.</p></h3>`
-    //  }
-    //  await transporter.sendMail(mailOptions,(err,info)=>{
-    //     if(err){
-    //        console.log(err)
-    //        res.status(500).json({success:false,message:"Internal Server Error"})
-    //     }else{
-    //        res.status(200).json({success:true,message:"Email sent successfully"})
-    //     }
-    //  });
+     const mailOptions={
+        from:'profitteamcad@gmail.com',
+        to:email,
+        subject:`Your verification code is ${process.env.VERIFICATION_CODE}`,
+        text:"code",
+        html:emailTemplate(email),
+     }
+     await transporter.sendMail(mailOptions,(err,info)=>{
+        if(err){
+           console.log(err)
+           res.status(500).json({success:false,message:"Internal Server Error"})
+        }else{
+           res.status(200).json({success:true,message:"Email sent successfully"})
+        }
+     });
 
   }
 };
@@ -203,40 +196,38 @@ const remailHandler = async (req, res) =>{
   const userExists = await User.findOne({ email });
   console.log(forgot_email);
   if (userExists) {
-      //   const transporter=nodemailer.createTransport({
-  //     //host: 'smtp.gmail.com',
-  //     port: 587,
-  //     secure: false, // true for 465, false for other ports
-  //     auth: {
-  //        user: 'klaus237192@gmail.com', // your email address
-  //        pass: 'ucybtcwnpnlqvidw' // your email password
-  //     },
-  //     //tls: {rejectUnauthorized: false},
-  //     service:'gmail'
-  //  })
+    const transporter=nodemailer.createTransport({
+      //host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+         user: 'profitteamcad@gmail.com', // your email address
+         pass: 'vojhaizydjtqdahe' // your email password
+      },
+      //tls: {rejectUnauthorized: false},
+      service:'gmail'
+   })
 
    process.env.FORGOT_CODE=Math.floor(100000+Math.random()*900000);
    process.env.GENERATED_TIME=Date.now();
    res.status(200).json({message:'sent'});
    console.log(process.env.FORGOT_CODE);
     
-  //  const mailOptions={
-  //     from:'klaus237192@gmail.com',
-  //     to:email,
-  //     subject:`Your verification code is ${process.env.FORGOT_CODE}`,
-  //     text:"code",
-  //     html:`<h1>Verify your email address</h1>
-  //           <hr><h3><p>Please enter this 6-digit code to access our platform.</p></h3>
-  //           <h2>${process.env.FORGOT_CODE}</h2><h3><p>This code is valid for 2 minutes.</p></h3>`
-  //  }
-  //  await transporter.sendMail(mailOptions,(err,info)=>{
-  //     if(err){
-  //        console.log(err)
-  //        res.status(500).json({success:false,message:"Internal Server Error"})
-  //     }else{
-  //        res.status(200).json({success:true,message:"Email sent successfully"})
-  //     }
-  //  });
+   const mailOptions={
+      from:'profitteamcad@gmail.com',
+      to:email,
+      subject:`Your verification code is ${process.env.FORGOT_CODE}`,
+      text:"code",
+      html:forgotTemplate(email),
+   }
+   await transporter.sendMail(mailOptions,(err,info)=>{
+      if(err){
+         console.log(err)
+         res.status(500).json({success:false,message:"Internal Server Error"})
+      }else{
+         res.status(200).json({success:true,message:"Email sent successfully"})
+      }
+   });
 
   } else {
     res.status(400).json({message:"User doesn't exist."});
